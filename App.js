@@ -29,6 +29,9 @@ import Amigos from './src/screens/Amigos'
 registerKilledListener();
 
 class MainPage extends Component {
+  static navigationOptions = {
+    header: null,
+  };
   constructor(props) {
     super(props);
 
@@ -37,23 +40,23 @@ class MainPage extends Component {
       tokenCopyFeedback: ""
     };
   }
-  componentWillMount(){
-    AsyncStorage.getItem('USUARIO',(err,res)=>{
-      if(err){
+  componentWillMount() {
+    AsyncStorage.getItem('USUARIO', (err, res) => {
+      if (err) {
         FCM.getFCMToken().then(token => {
           console.log("TOKEN (getFCMToken)", token);
-          this.props.navigation.navigate('register',{token})
+          this.props.navigation.navigate('register', { token })
         });
-        
-      }else if(res!=null || res!=undefined){
-        this.props.navigation.navigate('home')
-      }else{
+
+      } else if (res != null || res != undefined) {
+        this.props.navigation.replace('home')
+      } else {
         FCM.getFCMToken().then(token => {
           console.log("TOKEN (getFCMToken)", token);
-          this.props.navigation.navigate('register',{token})
+          this.props.navigation.navigate('register', { token })
         });
       }
-      
+
     })
   }
   async componentDidMount() {
@@ -72,7 +75,7 @@ class MainPage extends Component {
         setTimeout(() => {
           this.props.navigation.navigate("Detail");
         }, 0
-      );
+        );
       }
     });
 
@@ -317,7 +320,7 @@ export default StackNavigator(
     // login:{
     //   screen: Login,
     // },
-    register:{
+    register: {
       screen: Register
     },
     home: {
@@ -329,17 +332,17 @@ export default StackNavigator(
     // pregunta:{
     //   screen:Pregunta
     // },
-    amigos:{
-      screen:Amigos
+    amigos: {
+      screen: Amigos
     },
     // notifications:{
     //   screen:AppNotifications
     // },
-    chat:{
-      screen:Chat
+    chat: {
+      screen: Chat
     },
-    main:{
-      screen:MainPage
+    main: {
+      screen: MainPage
     }
     //Aqui ingresas tus screens
   },

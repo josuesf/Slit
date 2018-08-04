@@ -27,10 +27,17 @@ export default class Home extends Component {
         ];
         this.state = {
             pagina: 'home',
-            chats: realm.objects('Chats').sorted('timestamp'),
+            chats: realm.objects('Chats').sorted('timestamp',true),
         }
     }
-
+    componentWillMount(){
+        // realm.write(() => {
+        //     let allBooks = realm.objects('Chats');
+        //     realm.delete(allBooks); // Deletes all books
+        //     let chatsss = realm.objects('ChatList');
+        //     realm.delete(chatsss); // Deletes all books
+        //   });
+    }
     render() {
         const { navigate } = this.props.navigation;
         return (
@@ -59,10 +66,14 @@ export default class Home extends Component {
                                 activeOpacity={0.6} style={{ paddingVertical: 10 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Image source={require('../img/avatar_1.jpg')} style={{ height: 50, width: 50, borderRadius: 25, marginRight: 20 }} />
-                                    <Text style={{ flex: 1, color: '#028090' }}>{c.usuario}</Text>
-                                    <View style={{ height: 20, width: 20, borderRadius: 10, backgroundColor: '#02C39A', alignItems: 'center' }}>
-                                        <Text style={{ color: '#FFF' }}>1</Text>
+                                    <View style={{flex:1}}>
+                                    <Text style={{  color: '#6B6B6B',fontWeight:'bold' }}>{c.usuario}</Text>
+                                    <Text style={{  color: c.rol=="receptor"?'#028090':'#6B6B6B' }}>{c.ultimo_mensaje}</Text>
                                     </View>
+                                    {c.rol=="receptor" && <View style={{ height: 20, width: 20, borderRadius: 10, backgroundColor: '#02C39A', alignItems: 'center' }}>
+                                        <Text style={{ color: '#FFF' }}>1</Text>
+                                    </View>}
+                                    
                                 </View>
                                 <View style={{ height: 1, backgroundColor: '#E8E8E8', marginLeft: 50, marginTop: 5 }} />
                             </TouchableOpacity>

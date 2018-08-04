@@ -43,7 +43,7 @@ export default class Amigos extends Component {
         })
     }
     render() {
-        const { navigate, goBack } = this.props.navigation;
+        const { navigate,replace, goBack } = this.props.navigation;
         return (
             <View style={styles.container}>
                 <StatusBar
@@ -72,7 +72,7 @@ export default class Amigos extends Component {
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Image source={require('../img/avatar_2.jpg')} style={{ height: 50, width: 50, borderRadius: 25, marginRight: 20 }} />
                                     <Text style={{ flex: 1, color: '#A4A4A4' }}>{u.usuario}</Text>
-                                    <TouchableOpacity onPress={()=>navigate('chat',{usuario:u.usuario})} style={{ borderRadius: 5, backgroundColor: '#02C39A', alignItems: 'center' }}>
+                                    <TouchableOpacity onPress={()=>replace('chat',{usuario:u.usuario})} style={{ borderRadius: 5, backgroundColor: '#02C39A', alignItems: 'center' }}>
                                         <Text style={{ color: '#FFF', padding: 10 }}>Enviar</Text>
                                     </TouchableOpacity>
                                 </View>

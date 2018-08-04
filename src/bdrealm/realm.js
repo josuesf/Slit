@@ -5,6 +5,7 @@ import Realm from 'realm';
 class ChatList extends Realm.Object {}
 ChatList.schema = {
     name: 'ChatList',
+    primaryKey: 'id_mensaje',
     properties: {
         id_mensaje: 'string',
         mensaje:'string',
@@ -19,6 +20,7 @@ ChatList.schema = {
 class Chats extends Realm.Object {}
 Chats.schema = {
     name: 'Chats',
+    primaryKey: 'id_chat',
     properties: {
         id_chat: 'string',
         usuario: 'string',
