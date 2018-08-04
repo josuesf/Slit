@@ -12,7 +12,8 @@ import {
   View,
   Clipboard,
   Platform,
-  ScrollView
+  ScrollView,
+  AsyncStorage,
 } from "react-native";
 
 import { StackNavigator } from "react-navigation";
@@ -21,7 +22,10 @@ import FCM, { NotificationActionType } from "react-native-fcm";
 
 import { registerKilledListener, registerAppListener } from "./app/Listeners";
 import firebaseClient from "./app/FirebaseClient";
-
+import Chat from "./src/screens/Chat";
+import Register from './src/screens/Register'
+import Home from './src/screens/Home'
+import Amigos from './src/screens/Amigos'
 registerKilledListener();
 
 class MainPage extends Component {
@@ -33,7 +37,25 @@ class MainPage extends Component {
       tokenCopyFeedback: ""
     };
   }
-
+  componentWillMount(){
+    AsyncStorage.getItem('USUARIO',(err,res)=>{
+      if(err){
+        FCM.getFCMToken().then(token => {
+          console.log("TOKEN (getFCMToken)", token);
+          this.props.navigation.navigate('register',{token})
+        });
+        
+      }else if(res!=null || res!=undefined){
+        this.props.navigation.navigate('home')
+      }else{
+        FCM.getFCMToken().then(token => {
+          console.log("TOKEN (getFCMToken)", token);
+          this.props.navigation.navigate('register',{token})
+        });
+      }
+      
+    })
+  }
   async componentDidMount() {
     FCM.createNotificationChannel({
       id: 'default',
@@ -49,7 +71,8 @@ class MainPage extends Component {
       if (notif && notif.targetScreen === "detail") {
         setTimeout(() => {
           this.props.navigation.navigate("Detail");
-        }, 500);
+        }, 0
+      );
       }
     });
 
@@ -205,7 +228,7 @@ class MainPage extends Component {
 
     return (
       <View style={styles.container}>
-        <ScrollView style={{ paddingHorizontal: 20 }}>
+        {/* <ScrollView style={{ paddingHorizontal: 20 }}>
           <Text style={styles.welcome}>Welcome to Simple Fcm Client!</Text>
 
           <Text style={styles.feedback}>{this.state.tokenCopyFeedback}</Text>
@@ -261,7 +284,7 @@ class MainPage extends Component {
           >
             {this.state.token}
           </Text>
-        </ScrollView>
+        </ScrollView> */}
       </View>
     );
   }
@@ -291,17 +314,44 @@ class DetailPage extends Component {
 
 export default StackNavigator(
   {
-    Main: {
-      screen: MainPage
+    // login:{
+    //   screen: Login,
+    // },
+    register:{
+      screen: Register
     },
-    Detail: {
-      screen: DetailPage
+    home: {
+      screen: Home,
+    },
+    // preguntas_con:{
+    //   screen:PreguntasCon
+    // },
+    // pregunta:{
+    //   screen:Pregunta
+    // },
+    amigos:{
+      screen:Amigos
+    },
+    // notifications:{
+    //   screen:AppNotifications
+    // },
+    chat:{
+      screen:Chat
+    },
+    main:{
+      screen:MainPage
     }
+    //Aqui ingresas tus screens
   },
   {
-    initialRouteName: "Main"
-  }
-);
+    initialRouteName: 'main',
+    //headerMode: 'none',
+    /*
+   * Use modal on iOS because the card mode comes from the right,
+   * which conflicts with the drawer example gesture
+   */
+    mode: Platform.OS === 'ios' ? 'modal' : 'card',
+  });
 
 const styles = StyleSheet.create({
   container: {

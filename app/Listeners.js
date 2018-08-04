@@ -59,7 +59,7 @@ export function registerAppListener(navigation){
       if(notif.targetScreen === 'detail'){
         setTimeout(()=>{
           navigation.navigate('Detail')
-        }, 500)
+        }, 0)
       }
       setTimeout(()=>{
         alert(`User tapped notification\n${JSON.stringify(notif)}`)
