@@ -13,6 +13,7 @@ import {
     TouchableOpacity,
     StatusBar,
     TextInput,
+    AsyncStorage,
 } from 'react-native';
 import IconMaterial from 'react-native-vector-icons/MaterialCommunityIcons';
 import { fetchData } from '../utils/fetchData'
@@ -32,13 +33,19 @@ export default class Amigos extends Component {
         }
     }
     componentWillMount() {
+        AsyncStorage.getItem('USUARIO', (err, res) => {
+            let datos_login = JSON.parse(res)
+            this.setState({own_usuario:datos_login.usuario})
+      
+        })
         this.recuperarAmigos()
+        
     }
     recuperarAmigos = () => {
         fetchData('/ws/get_all_users', 'POST', {}, (res, err) => {
             if (err)
                 alert(err)
-            this.setState({ usuarios: res })
+            this.setState({ usuarios: res.filter(u=>u.usuario!=this.state.own_usuario) })
             console.log(res)
         })
     }

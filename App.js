@@ -26,6 +26,8 @@ import Chat from "./src/screens/Chat";
 import Register from './src/screens/Register'
 import Home from './src/screens/Home'
 import Amigos from './src/screens/Amigos'
+import SocketIOClient from 'socket.io-client';
+
 registerKilledListener();
 
 class MainPage extends Component {
@@ -39,6 +41,8 @@ class MainPage extends Component {
       token: "",
       tokenCopyFeedback: ""
     };
+    this.socket = SocketIOClient('http://192.168.1.5:5000');
+    
   }
   componentWillMount() {
     AsyncStorage.getItem('USUARIO', (err, res) => {
@@ -73,7 +77,7 @@ class MainPage extends Component {
       });
       if (notif && notif.targetScreen === "detail") {
         setTimeout(() => {
-          this.props.navigation.navigate("Detail");
+          this.props.navigation.navigate("chat", { usuario: notif.id_usuario });
         }, 0
         );
       }
@@ -305,15 +309,6 @@ class MainPage extends Component {
   }
 }
 
-class DetailPage extends Component {
-  render() {
-    return (
-      <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}>
-        <Text>Detail page</Text>
-      </View>
-    );
-  }
-}
 
 export default StackNavigator(
   {

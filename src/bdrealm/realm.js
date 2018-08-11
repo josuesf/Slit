@@ -25,6 +25,7 @@ Chats.schema = {
         id_chat: 'string',
         usuario: 'string',
         token:'string',
+        id_mensaje: 'string',
         ultimo_mensaje:'string',
         timestamp:'date',
         avatar:'string',

@@ -13,30 +13,46 @@ import {
     TouchableOpacity,
     StatusBar,
     TextInput,
+    ScrollView,
+    AsyncStorage
 } from 'react-native';
 import IconMaterial from 'react-native-vector-icons/MaterialCommunityIcons';
 import realm from '../bdrealm/realm'
+import { asyncFetch } from '../utils/fetchData'
+import AutoScroll from '../utils/AutoScroll';
+
 export default class Chat extends Component {
     static navigationOptions = {
         header: null,
     };
     constructor(props) {
-        super()
+        super(props)
         console.ignoredYellowBox = [
             'Setting a timer'
         ];
         this.state = {
-            id_usuario: 'josuesf',
-            mensajes: realm.objects('ChatList').filtered('id_chat="'+props.navigation.state.params.usuario+'"').sorted('timestamp'),
+            id_usuario: '',
+            mensajes: realm.objects('ChatList').filtered('id_chat="'+props.navigation.state.params.usuario+'"').sorted('timestamp',true).slice(0,10).reverse(),
             chat_con: props.navigation.state.params.usuario
         }
+        realm.addListener('change', ()=>{
+            this.setState({
+                mensajes: realm.objects('ChatList').filtered('id_chat="'+props.navigation.state.params.usuario+'"').sorted('timestamp',true).slice(0,10).reverse(),
+            })
+        });
     }
     componentWillMount() {
-
+        this.EnviarMensajesGuardados()
+        AsyncStorage.getItem('USUARIO', (err, res) => {
+            let datos_login = JSON.parse(res)
+            this.setState({id_usuario:datos_login.usuario})
+      
+        })
     }
     EnviarMensaje = () => {
         let time = new Date()
         //Crear o Actulizar Chat
+        let id_mensaje = this.state.chat_con + this.state.id_usuario + Date.now()
         realm.write(() => {
             realm.create('Chats', {
                 id_chat: this.state.chat_con,
@@ -47,13 +63,14 @@ export default class Chat extends Component {
                 avatar: '',
                 estado_mensaje: 'guardado',
                 rol: 'emisor',
-                tipo_mensaje: 'texto'
+                tipo_mensaje: 'texto',
+                id_mensaje
             },true);
         });
         //Agregar Mensaje
         realm.write(() => {
             realm.create('ChatList', {
-                id_mensaje: this.state.chat_con + this.state.id_usuario + Date.now(),
+                id_mensaje,
                 mensaje: this.state.mensaje,
                 tipo_mensaje: 'texto',
                 timestamp: time,
@@ -62,7 +79,33 @@ export default class Chat extends Component {
                 id_usuario: this.state.id_usuario
             });
         });
-        this.setState({mensajes:realm.objects('ChatList').filtered('id_chat="'+this.state.chat_con+'"').sorted('timestamp')})
+        this.setState({
+            mensajes: realm.objects('ChatList').filtered('id_chat="'+this.state.chat_con+'"').sorted('timestamp',true).slice(0,10).reverse(),
+            mensaje:""
+        })
+        this.EnviarMensajesGuardados()
+    }
+    EnviarMensajesGuardados(){
+        const mensajes_guardados = realm.objects('ChatList').filtered('estado_mensaje="guardado"').sorted('timestamp')
+        for(var i = 0;i<mensajes_guardados.length;i++){
+            var id_mensaje = mensajes_guardados[i].id_mensaje
+            asyncFetch('/ws/send_message','POST',mensajes_guardados[i],(res)=>{
+                if(res.respuesta == 'ok'){
+                    console.log(res.data)
+                    realm.write(() => {
+                        realm.create('ChatList', {
+                            id_mensaje: res.data,
+                            estado_mensaje: 'enviado',
+                        },true);
+                        realm.create('Chats', {
+                            id_chat: this.state.chat_con,
+                            estado_mensaje: 'enviado',
+                        },true);
+                    });
+                }
+                
+            })
+        }
     }
     render() {
         const { navigate, goBack } = this.props.navigation;
@@ -70,7 +113,7 @@ export default class Chat extends Component {
         const name_icon = (estado) => {
             if (estado == "guardado")
                 return "clock-outline"
-            else if (estado == "ENVIADO")
+            else if (estado == "enviado")
                 return "check"
             else
                 return "check-all"
@@ -95,6 +138,7 @@ export default class Chat extends Component {
                     </TouchableOpacity>
                     <Text style={{ color: '#F0F3BD', fontSize: 16, fontWeight: 'bold' }}>Preguntas con {this.state.chat_con}</Text>
                 </View>
+                <AutoScroll style={{marginBottom:60}} >
                 {mensajes.map(m => m.id_usuario == this.state.id_usuario ?
                     <View key={m.id_mensaje} style={{ flexDirection: 'row', alignItems: 'center' }}>
                         <View style={{ flex: 1 }} />
@@ -115,7 +159,7 @@ export default class Chat extends Component {
                         <View style={{ padding: 10, backgroundColor: '#FFF', borderRadius: 10, marginBottom: 5, marginRight: 20, marginLeft: 5 }}>
                             <Text style={{ color: '#6B6B6B', fontSize: 15 }}>{m.mensaje}</Text>
                             <View style={{ flexDirection: 'row', marginLeft: 5, alignItems: 'center', alignSelf: 'flex-end' }}>
-                                <Text style={{ color: '#6B6B6B', fontSize: 11, marginRight: 2 }}>{m.timestamp}</Text>
+                                <Text style={{ color: '#6B6B6B', fontSize: 11, marginRight: 2 }}>{Hora(m.timestamp)}</Text>
                             </View>
 
                         </View>
@@ -123,12 +167,13 @@ export default class Chat extends Component {
                         <View style={{ flex: 1 }} />
                     </View>
                 )}
+                </AutoScroll>
 
 
                 <View style={styles.bottomNav}>
                     <View style={{ paddingVertical: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginTop: 10, marginBottom: 10 }}>
                         <View style={{ backgroundColor: '#FFF', borderRadius: 20, height: 50, flex: 1, margin: 10, justifyContent: 'center', paddingLeft: 10 }}>
-                            <TextInput onChangeText={(text) => this.setState({ mensaje: text })} underlineColorAndroid="transparent" style={{ paddingLeft: 5 }} placeholder="Escribir mensaje" />
+                            <TextInput value={this.state.mensaje} onChangeText={(text) => this.setState({ mensaje: text })} underlineColorAndroid="transparent" style={{ paddingLeft: 5 }} placeholder="Escribir mensaje" />
                         </View>
                         <TouchableOpacity onPress={() => this.EnviarMensaje()} style={{ height: 50, width: 50, borderRadius: 25, backgroundColor: '#00A896', marginRight: 5, justifyContent: 'center', alignItems: 'center' }}>
                             <IconMaterial color="#FFF" size={25} name="send" />

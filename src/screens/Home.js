@@ -27,19 +27,33 @@ export default class Home extends Component {
         ];
         this.state = {
             pagina: 'home',
-            chats: realm.objects('Chats').sorted('timestamp',true),
+            chats: realm.objects('Chats').sorted('timestamp', true),
         }
+        realm.addListener('change', () => {
+            this.setState({
+                chats: realm.objects('Chats').sorted('timestamp', true),
+            })
+        });
     }
-    componentWillMount(){
+    componentWillMount() {
         // realm.write(() => {
         //     let allBooks = realm.objects('Chats');
         //     realm.delete(allBooks); // Deletes all books
         //     let chatsss = realm.objects('ChatList');
         //     realm.delete(chatsss); // Deletes all books
         //   });
+        
     }
     render() {
         const { navigate } = this.props.navigation;
+        const name_icon = (estado) => {
+            if (estado == "guardado")
+                return "clock-outline"
+            else if (estado == "enviado")
+                return "check"
+            else
+                return "check-all"
+        }
         return (
             <View style={styles.container}>
                 <StatusBar
@@ -62,18 +76,21 @@ export default class Home extends Component {
                     </TouchableOpacity>
                     <View style={{ marginVertical: 20 }}>
                         {this.state.chats.map(c =>
-                            <TouchableOpacity key={c.usuario} onPress={() => navigate('chat',{usuario:c.usuario})}
+                            <TouchableOpacity key={c.usuario} onPress={() => navigate('chat', { usuario: c.usuario })}
                                 activeOpacity={0.6} style={{ paddingVertical: 10 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                                     <Image source={require('../img/avatar_1.jpg')} style={{ height: 50, width: 50, borderRadius: 25, marginRight: 20 }} />
-                                    <View style={{flex:1}}>
-                                    <Text style={{  color: '#6B6B6B',fontWeight:'bold' }}>{c.usuario}</Text>
-                                    <Text style={{  color: c.rol=="receptor"?'#028090':'#6B6B6B' }}>{c.ultimo_mensaje}</Text>
+                                    <View style={{ flex: 1 }}>
+                                        <Text style={{ color: '#6B6B6B', fontWeight: 'bold' }}>{c.usuario}</Text>
+                                        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                                            <IconMaterial size={15} color={c.estado_mensaje == "visto" ? "#70CDEB" : "#6B6B6B"} name={name_icon(c.estado_mensaje)} />
+                                            <Text style={{ color: c.rol == "receptor" ? '#028090' : '#6B6B6B',marginHorizontal:5 }}>{c.ultimo_mensaje}</Text>
+                                        </View>
                                     </View>
-                                    {c.rol=="receptor" && <View style={{ height: 20, width: 20, borderRadius: 10, backgroundColor: '#02C39A', alignItems: 'center' }}>
+                                    {c.rol == "receptor" && <View style={{ height: 20, width: 20, borderRadius: 10, backgroundColor: '#02C39A', alignItems: 'center' }}>
                                         <Text style={{ color: '#FFF' }}>1</Text>
                                     </View>}
-                                    
+
                                 </View>
                                 <View style={{ height: 1, backgroundColor: '#E8E8E8', marginLeft: 50, marginTop: 5 }} />
                             </TouchableOpacity>
